@@ -1,0 +1,195 @@
+package busResv;
+import java.sql.*;
+
+public class DbConnection {
+	private static final String url = "jdbc:mysql://localhost:3306/busresv";
+	private static final String userName = "root";
+	private static final String passWord = "Vel@1234567890";
+    
+	public static Connection getConnection() throws SQLException{
+		return DriverManager.getConnection(url, userName, passWord); 
+	}
+	
+
+}
+package busResv;
+import java.util.*;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+public class Booking {
+	String passengerName;
+	int busNo;
+	Date date;
+	
+	Booking(){
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("Enter name of passenger:");
+		passengerName = scanner.next();
+		System.out.println("enter bus no:");
+		busNo = scanner.nextInt();
+		System.out.println("Enter date dd-mm-yyyy");
+		String dateInput = scanner.next();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		try {
+		date = dateFormat.parse(dateInput);
+		}catch(ParseException e) {
+			e.printStackTrace();
+		}
+	}
+	public boolean isAvailable() throws SQLException{
+		BusDAO busdao = new BusDAO();
+		BookingDAO bookingdao = new BookingDAO();
+		int capacity = busdao.getCapacity(busNo);
+		int booked =bookingdao.getBookedCount(busNo,date);
+		
+		return booked<capacity;
+		
+		
+		
+		
+		
+	}
+	
+
+}
+package busResv;
+import java.util.Scanner;
+import java.util.ArrayList;
+
+import java.sql.SQLException;
+
+
+public class BusDemo {
+	public static void main(String[]args) throws SQLException{
+		BusDAO busdao = new BusDAO();
+		busdao.displayBusInfo();
+		
+		
+		
+		int userOpt = 1;
+		Scanner scanner = new Scanner(System.in);
+		
+		
+		while(userOpt==1) {
+			System.out.println("Enter 1 to Book and 2 to exit");
+			userOpt = scanner.nextInt();
+			if(userOpt == 1) {
+				Booking booking = new Booking();
+				if(booking.isAvailable()) {
+					BookingDAO bookingdao = new BookingDAO();
+					bookingdao.addBooking(booking);
+					System.out.println("your booking is confirmed");
+				}
+				else {
+					System.out.println("sorry.Bus is full.Try another bus or date");
+				}
+					
+			}
+		}
+		
+	}
+
+}
+package busResv;
+
+public class Bus {
+	private int busNo;
+	 private boolean ac;
+	private int capacity;
+	 Bus(int no,boolean ac,int cap){
+		 this.busNo = no;
+		 this.ac=ac;
+		 this.capacity= cap;
+		
+	}
+	 public int getBusNo() {
+		 return busNo;
+		 
+	 }
+	 public boolean isAc() {
+		 return ac;
+	 }
+	 public int getCapacity() {
+		 return capacity;
+	 }
+	 public void setAc(boolean val) {
+		 ac = val;
+	 }
+	 public void setCapacity(int cap) {
+		 capacity = cap;
+	 }
+	
+
+}
+package busResv;
+import java.sql.*;
+
+public class BusDAO {// dao full form data acces object
+	
+	public void displayBusInfo () throws SQLException{
+		String query = "select * from bus";
+		 Connection con = DbConnection.getConnection();
+		 Statement st = con.createStatement();
+		 ResultSet rs = st.executeQuery(query);
+		 
+		 while(rs.next()) {
+			 System.out.println("Bus No:"+rs.getInt(1));
+			 if(rs.getInt(2)==0)
+				 System.out.print("AC:no");
+			 else
+				 System.out.println("AC: yes");
+			 System.out.println("Capacity:"+rs.getInt(3));
+			 
+		 }
+		 System.out.println("--------------------------");
+		
+	}
+	public int getCapacity(int id) throws SQLException{
+		String query="Select capacity from bus where id=" +id;
+		Connection con = DbConnection.getConnection();
+		 Statement st = con.createStatement();
+		 ResultSet rs = st.executeQuery(query);
+		 rs.next();
+		 return rs.getInt(1);
+	}
+		
+	}
+
+
+
+create schema busresv;
+use busresv;
+create table bus(
+id int primary key,
+ac boolean,
+capacity int
+);
+insert into bus values (1, 1,2);
+insert into bus values(2,1,48);
+insert into bus values(3,0,52);
+
+
+select * from bus;
+
+create table booking(
+passenger_name varchar(50),
+bus_no int,
+travel_date date
+);
+select * from booking;
+select capacity from bus where id=3;
+
+
+
+
+
+
+
+
+
+	
+
+
